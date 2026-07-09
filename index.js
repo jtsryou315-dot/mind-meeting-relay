@@ -43,8 +43,10 @@ client.once('ready', () => {
   }, 5000);
 });
 
+let messageCount = 0;
 client.on('messageCreate', async (message) => {
   try {
+    messageCount++;
     console.log('メッセージ受信:', message.channel.name, '| カテゴリ:', message.channel.parent ? message.channel.parent.name : 'なし');
     if (message.author.bot) return;
 
@@ -89,7 +91,7 @@ async function forwardToGas_(type, data) {
 const app = express();
 app.use(express.json());
 
-app.get('/health', (req, res) => res.json({ ok: true, ready: client.isReady() }));
+app.get('/health', (req, res) => res.json({ ok: true, ready: client.isReady(), guilds: client.guilds.cache.size, messagesSeen: messageCount }));
 
 app.use((req, res, next) => {
   if (req.headers['x-relay-secret'] !== RELAY_SECRET) {
