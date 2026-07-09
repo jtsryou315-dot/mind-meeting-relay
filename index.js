@@ -98,11 +98,19 @@ async function findStudentThread_(studentName) {
     const archived = await channel.threads.fetchArchived();
     found = [...archived.threads.values()].find(t => t.name.includes(nickname));
   }
+
   if (found) {
-    if (found.locked) await found.setLocked(false).catch(() => {});
-    if (found.archived) await found.setArchived(false).catch(() => {});
-    await found.join().catch(() => {});
+    console.log('スレッド発見:', found.name, 'archived:', found.archived, 'locked:', found.locked, 'type:', found.type);
+    try {
+      await found.join();
+      console.log('スレッド参加: 成功');
+    } catch (e) {
+      console.log('スレッド参加: 失敗 -', String(e));
+    }
+  } else {
+    console.log('スレッドが見つかりませんでした:', nickname);
   }
+
   return found || null;
 }
 
