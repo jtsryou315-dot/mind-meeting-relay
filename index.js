@@ -39,6 +39,7 @@ client.once('ready', () => {
 
 client.on('messageCreate', async (message) => {
   try {
+    console.log('メッセージ受信:', message.channel.name, '| カテゴリ:', message.channel.parent ? message.channel.parent.name : 'なし');
     if (message.author.bot) return;
 
     if (message.channel.parent && message.channel.parent.name === CONSULT_CATEGORY_NAME) {
