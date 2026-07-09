@@ -37,6 +37,10 @@ client.once('ready', () => {
   console.log(`Discordにログインしました: ${client.user.tag}`);
 });
 
+  client.guilds.cache.forEach(g => {
+    console.log('参加サーバー:', g.name, '| チャンネル数:', g.channels.cache.size);
+  });
+
 client.on('messageCreate', async (message) => {
   try {
     console.log('メッセージ受信:', message.channel.name, '| カテゴリ:', message.channel.parent ? message.channel.parent.name : 'なし');
