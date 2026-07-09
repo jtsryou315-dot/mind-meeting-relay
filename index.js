@@ -98,7 +98,11 @@ async function findStudentThread_(studentName) {
     const archived = await channel.threads.fetchArchived();
     found = [...archived.threads.values()].find(t => t.name.includes(nickname));
   }
-  if (found) await found.join();
+  if (found) {
+    if (found.locked) await found.setLocked(false).catch(() => {});
+    if (found.archived) await found.setArchived(false).catch(() => {});
+    await found.join().catch(() => {});
+  }
   return found || null;
 }
 
