@@ -44,6 +44,10 @@ client.once('ready', () => {
 });
 
 let messageCount = 0;
+let rawEventCounts = {};
+client.on('raw', (packet) => {
+  rawEventCounts[packet.t] = (rawEventCounts[packet.t] || 0) + 1;
+});
 client.on('messageCreate', async (message) => {
   try {
     messageCount++;
@@ -92,6 +96,7 @@ const app = express();
 app.use(express.json());
 
 app.get('/health', (req, res) => res.json({ ok: true, ready: client.isReady(), guilds: client.guilds.cache.size, messagesSeen: messageCount }));
+app.get('/debug', (req, res) => res.json(rawEventCounts));
 
 app.use((req, res, next) => {
   if (req.headers['x-relay-secret'] !== RELAY_SECRET) {
