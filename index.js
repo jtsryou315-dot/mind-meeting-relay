@@ -35,11 +35,13 @@ const client = new Client({
 
 client.once('ready', () => {
   console.log(`Discordにログインしました: ${client.user.tag}`);
+  setTimeout(() => {
+    console.log('保持しているサーバー数:', client.guilds.cache.size);
+    client.guilds.cache.forEach(g => {
+      console.log('参加サーバー:', g.name, '| チャンネル数:', g.channels.cache.size);
+    });
+  }, 5000);
 });
-
-  client.guilds.cache.forEach(g => {
-    console.log('参加サーバー:', g.name, '| チャンネル数:', g.channels.cache.size);
-  });
 
 client.on('messageCreate', async (message) => {
   try {
