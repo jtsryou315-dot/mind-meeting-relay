@@ -5,7 +5,7 @@
  *   DISCORD_BOT_TOKEN : DiscordのBotトークン
  *   RELAY_SECRET       : GAS <-> このサーバー間の合言葉（自分で好きな文字列を決めてOK）
  *   GAS_WEBHOOK_URL    : Apps ScriptのWebアプリURL（/exec で終わるもの）
- *   CONSULT_CATEGORY_NAME : 相談チャンネル群が入っているカテゴリ名（例: インスタ講座）
+ *   CONSULT_CHANNEL_ID : 相談が投稿されるチャンネル（アカウント添削グループ）のID
  *   PORT               : Railwayが自動で設定するので通常は指定不要
  */
 
@@ -18,11 +18,12 @@ const {
 
 const RELAY_SECRET = process.env.RELAY_SECRET;
 const GAS_WEBHOOK_URL = process.env.GAS_WEBHOOK_URL;
-const CONSULT_CATEGORY_NAME = process.env.CONSULT_CATEGORY_NAME || 'インスタ講座';
+const CONSULT_CHANNEL_ID = process.env.CONSULT_CHANNEL_ID;
 
 if (!process.env.DISCORD_BOT_TOKEN) throw new Error('DISCORD_BOT_TOKEN が未設定です');
 if (!RELAY_SECRET) throw new Error('RELAY_SECRET が未設定です');
 if (!GAS_WEBHOOK_URL) throw new Error('GAS_WEBHOOK_URL が未設定です');
+if (!CONSULT_CHANNEL_ID) throw new Error('CONSULT_CHANNEL_ID が未設定です');
 
 const client = new Client({
   intents: [
@@ -33,32 +34,27 @@ const client = new Client({
   partials: [Partials.Channel, Partials.Message],
 });
 
-client.once('ready', () => {
-  console.log(`Discordにログインしました: ${client.user.tag}`);
-  setTimeout(() => {
-    console.log('保持しているサーバー数:', client.guilds.cache.size);
-    client.guilds.cache.forEach(g => {
-      console.log('参加サーバー:', g.name, '| チャンネル数:', g.channels.cache.size);
-    });
-  }, 5000);
-});
-
 let messageCount = 0;
 let rawEventCounts = {};
 client.on('raw', (packet) => {
   rawEventCounts[packet.t] = (rawEventCounts[packet.t] || 0) + 1;
 });
+
+client.once('ready', () => {
+  console.log(`Discordにログインしました: ${client.user.tag}`);
+});
+
 client.on('messageCreate', async (message) => {
+  messageCount++;
   try {
-    messageCount++;
-    console.log('メッセージ受信:', message.channel.name, '| カテゴリ:', message.channel.parent ? message.channel.parent.name : 'なし');
     if (message.author.bot) return;
 
-    if (message.channel.parent && message.channel.parent.name === CONSULT_CATEGORY_NAME) {
+    if (message.channel.id === CONSULT_CHANNEL_ID) {
       await forwardToGas_('new_message', {
         channelId: message.channel.id,
-        channelName: message.channel.name,
         messageId: message.id,
+        authorName: message.member ? message.member.displayName : message.author.username,
+        authorId: message.author.id,
         content: message.content,
         timestamp: message.createdAt.toISOString(),
       });
